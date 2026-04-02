@@ -3,8 +3,15 @@ const http = require('http');
 
 const server = http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-api-key, anthropic-version');
-  if (req.method === 'OPTIONS') { res.writeHead(204); res.end(); return; }
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', '*');
+  
+  if (req.method === 'OPTIONS') { 
+    res.writeHead(204); 
+    res.end(); 
+    return; 
+  }
+  
   if (req.method === 'POST' && req.url === '/api') {
     let body = '';
     req.on('data', d => body += d);
@@ -22,13 +29,21 @@ const server = http.createServer((req, res) => {
       const preq = https.request(options, pres => {
         let data = '';
         pres.on('data', d => data += d);
-        pres.on('end', () => { res.writeHead(200, {'Content-Type':'application/json'}); res.end(data); });
+        pres.on('end', () => { 
+          res.writeHead(200, {'Content-Type':'application/json'}); 
+          res.end(data); 
+        });
+      });
+      preq.on('error', e => {
+        res.writeHead(500);
+        res.end(JSON.stringify({error: e.message}));
       });
       preq.write(body);
       preq.end();
     });
   } else {
-    res.writeHead(404); res.end();
+    res.writeHead(200); 
+    res.end('OK');
   }
 });
 
