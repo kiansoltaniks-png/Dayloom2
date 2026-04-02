@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dayloom — AI Schedule Maker</title>
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Dayloom" />
+<meta name="theme-color" content="#0e0e0e" />
+<link rel="apple-touch-icon" href="icon.png" />
+<link rel="manifest" href="manifest.json" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet" />
+<style>
+:root {
+  --bg: #0e0e0e; --surface: #161616; --surface2: #1e1e1e;
+  --border: rgba(255,255,255,0.08); --border2: rgba(255,255,255,0.14);
+  --text: #f0ede6; --muted: #888580;
+  --gold: #d4a853; --gold2: #e8c97a;
+  --blue: #5b9cf6; --green: #4caf85; --red: #e05c5c;
+  --purple: #a78bfa;
+  --r: 10px; --rl: 16px;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; font-weight: 400; min-height: 100vh; overflow-x: hidden; }
+nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 0 2rem; height: 60px; background: rgba(14,14,14,0.9); backdrop-filter: blur(14px); border-bottom: 0.5px solid var(--border); }
+.logo { font-family: 'DM Serif Display', serif; font-size: 22px; color: var(--text); letter-spacing: -0.02em; cursor: pointer; }
+.logo span { color: var(--gold); }
+.nav-right { display: flex; align-items: center; gap: 12px; }
+.nav-plan-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 20px; letter-spacing: 0.04em; }
+.badge-free { background: rgba(255,255,255,0.08); color: var(--muted); }
+.badge-pro { background: rgba(91,156,246,0.15); color: var(--blue); border: 0.5px solid rgba(91,156,246,0.3); }
+.badge-ultra { background: rgba(167,139,250,0.15); color: var(--purple); border: 0.5px solid rgba(167,139,250,0.3); }
+.nav-upgrade { background: var(--gold); color: #0e0e0e; border: none; padding: 7px 18px; border-radius: 6px; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background 0.2s; }
+.nav-upgrade:hover { background: var(--gold2); }
+.hero { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; padding: 6rem 1.5rem 4rem; position: relative; overflow: hidden; }
+.hero-bg { position: absolute; inset: 0; z-index: 0; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(212,168,83,0.08) 0%, transparent 70%); }
+.hero-grid { position: absolute; inset: 0; z-index: 0; background-image: linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px); background-size: 48px 48px; mask-image: radial-gradient(ellipse 80% 60% at 50% 50%, black 40%, transparent 100%); }
+.hero-content { position: relative; z-index: 1; max-width: 700px; }
+.hero-eyebrow { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); border: 0.5px solid rgba(212,168,83,0.3); padding: 5px 14px; border-radius: 20px; margin-bottom: 2rem; animation: fadein 0.6s ease both; }
+.hero-eyebrow::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+h1 { font-family: 'DM Serif Display', serif; font-size: clamp(3rem, 8vw, 5.5rem); line-height: 1.05; letter-spacing: -0.02em; margin-bottom: 1.5rem; animation: fadein 0.6s 0.1s ease both; }
+h1 em { font-style: italic; color: var(--gold); }
+.hero-sub { font-size: clamp(15px, 2vw, 18px); color: var(--muted); line-height: 1.7; margin-bottom: 2.5rem; max-width: 520px; margin-left: auto; margin-right: auto; animation: fadein 0.6s 0.2s ease both; }
+.hero-btns { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; animation: fadein 0.6s 0.3s ease both; }
+.btn-primary { background: var(--gold); color: #0e0e0e; border: none; padding: 14px 32px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+.btn-primary:hover { background: var(--gold2); transform: translateY(-1px); }
+.btn-ghost { background: transparent; color: var(--text); border: 0.5px solid var(--border2); padding: 14px 32px; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 15px; cursor: pointer; transition: all 0.2s; }
+.btn-ghost:hover { background: var(--surface); }
+.hero-stats { display: flex; gap: 2rem; justify-content: center; margin-top: 3.5rem; animation: fadein 0.6s 0.4s ease both; flex-wrap: wrap; }
+.stat { text-align: center; }
+.stat-num { font-family: 'DM Serif Display', serif; font-size: 28px; }
+.stat-label { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.section { padding: 6rem 1.5rem; max-width: 1100px; margin: 0 auto; }
+.section-label { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
+.section-title { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 5vw, 3rem); line-height: 1.1; margin-bottom: 1rem; letter-spacing: -0.02em; }
+.section-sub { font-size: 16px; color: var(--muted); max-width: 480px; line-height: 1.7; }
+.features-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; border: 1px solid var(--border); border-radius: var(--rl); overflow: hidden; margin-top: 3rem; }
+.feature-card { background: var(--surface); padding: 2rem; transition: background 0.2s; }
+.feature-card:hover { background: var(--surface2); }
+.feature-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; margin-bottom: 1.25rem; }
+.fi-free { background: rgba(212,168,83,0.12); border: 0.5px solid rgba(212,168,83,0.25); }
+.fi-pro { background: rgba(91,156,246,0.12); border: 0.5px solid rgba(91,156,246,0.25); }
+.fi-ultra { background: rgba(167,139,250,0.12); border: 0.5px solid rgba(167,139,250,0.25); }
+.feature-title { font-size: 16px; font-weight: 500; margin-bottom: 8px; }
+.feature-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.tier-tag { display: inline-block; font-size: 10px; font-weight: 500; letter-spacing: 0.06em; padding: 2px 8px; border-radius: 20px; margin-bottom: 10px; text-transform: uppercase; }
+.tt-free { background: rgba(255,255,255,0.06); color: var(--muted); }
+.tt-pro { background: rgba(91,156,246,0.15); color: var(--blue); }
+.tt-ultra { background: rgba(167,139,250,0.15); color: var(--purple); }
+#pricing { background: var(--surface); border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); padding: 6rem 1.5rem; }
+.pricing-inner { max-width: 960px; margin: 0 auto; }
+.pricing-header { text-align: center; margin-bottom: 3rem; }
+.pricing-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+.plan-card { background: var(--bg); border: 0.5px solid var(--border2); border-radius: var(--rl); padding: 2rem; display: flex; flex-direction: column; gap: 1.25rem; position: relative; transition: border-color 0.2s; }
+.plan-card:hover { border-color: rgba(255,255,255,0.25); }
+.plan-card.featured { border-color: var(--blue); background: rgba(91,156,246,0.04); }
+.plan-card.ultra-card { border-color: var(--purple); background: rgba(167,139,250,0.04); }
+.popular-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--blue); color: #fff; font-size: 11px; font-weight: 500; padding: 3px 14px; border-radius: 20px; white-space: nowrap; }
+.ultra-badge { position: absolute; top: -12px; left: 50%; transform: translateX(-50%); background: var(--purple); color: #fff; font-size: 11px; font-weight: 500; padding: 3px 14px; border-radius: 20px; white-space: nowrap; }
+.plan-name { font-size: 13px; font-weight: 500; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.plan-price { font-family: 'DM Serif Display', serif; font-size: 3rem; letter-spacing: -0.03em; line-height: 1; }
+.plan-price span { font-family: 'DM Sans', sans-serif; font-size: 15px; color: var(--muted); font-weight: 400; }
+.plan-desc { font-size: 14px; color: var(--muted); line-height: 1.6; }
+.plan-features { list-style: none; display: flex; flex-direction: column; gap: 10px; flex: 1; }
+.plan-features li { font-size: 14px; display: flex; align-items: flex-start; gap: 8px; line-height: 1.5; }
+.plan-features li::before { content: '✓'; color: var(--green); font-size: 13px; flex-shrink: 0; margin-top: 1px; }
+.plan-features li.locked { color: var(--muted); }
+.plan-features li.locked::before { content: '—'; color: rgba(255,255,255,0.15); }
+.plan-btn { padding: 12px; border-radius: var(--r); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; text-align: center; transition: all 0.2s; border: none; }
+.plan-btn-free { background: rgba(255,255,255,0.06); color: var(--text); border: 0.5px solid var(--border2); }
+.plan-btn-free:hover { background: rgba(255,255,255,0.1); }
+.plan-btn-pro { background: var(--blue); color: #fff; }
+.plan-btn-pro:hover { background: #4a8be0; }
+.plan-btn-ultra { background: var(--purple); color: #fff; }
+.plan-btn-ultra:hover { background: #9270e8; }
+.plan-card.active-plan { opacity: 0.55; pointer-events: none; }
+#app-section { padding: 4rem 1.5rem 6rem; background: var(--surface); border-top: 0.5px solid var(--border); border-bottom: 0.5px solid var(--border); }
+.app-inner { max-width: 680px; margin: 0 auto; }
+.app-header { text-align: center; margin-bottom: 3rem; }
+.app-header h2 { font-family: 'DM Serif Display', serif; font-size: 2.5rem; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
+.app-header p { font-size: 15px; color: var(--muted); }
+.plan-indicator { display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; color: var(--muted); margin-top: 10px; }
+.progress-bar { display: flex; gap: 6px; margin-bottom: 2.5rem; }
+.prog-seg { height: 3px; flex: 1; border-radius: 2px; background: rgba(255,255,255,0.1); transition: background 0.3s; }
+.prog-seg.active { background: var(--gold); }
+.step { display: none; animation: fadein 0.3s ease; }
+.step.active { display: flex; flex-direction: column; gap: 1.75rem; }
+.step-tag { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
+.step-heading { font-family: 'DM Serif Display', serif; font-size: 2rem; letter-spacing: -0.02em; line-height: 1.2; }
+.step-sub-text { font-size: 14px; color: var(--muted); margin-top: -12px; line-height: 1.6; }
+.field-group { display: flex; flex-direction: column; gap: 8px; }
+.field-label { font-size: 13px; color: var(--muted); }
+.chip-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { padding: 8px 16px; border-radius: 20px; border: 0.5px solid var(--border2); background: transparent; color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; user-select: none; }
+.chip:hover { background: var(--surface2); border-color: rgba(255,255,255,0.25); }
+.chip.sel { background: var(--gold); color: #0e0e0e; border-color: transparent; font-weight: 500; }
+.or-line { font-size: 11px; color: var(--muted); letter-spacing: 0.05em; text-transform: uppercase; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+input[type=text], select { background: var(--surface2); border: 0.5px solid var(--border2); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 10px 14px; border-radius: var(--r); width: 100%; outline: none; transition: border-color 0.15s; }
+input[type=text]:focus, select:focus { border-color: rgba(212,168,83,0.5); }
+input::placeholder { color: var(--muted); }
+select option { background: #1e1e1e; }
+.premium-block { border: 0.5px solid var(--border2); border-radius: var(--rl); overflow: hidden; }
+.premium-block-header { padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; background: var(--surface2); }
+.premium-block-title { font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; }
+.lock-badge { font-size: 11px; padding: 2px 10px; border-radius: 20px; font-weight: 500; }
+.lock-pro { background: rgba(91,156,246,0.15); color: var(--blue); border: 0.5px solid rgba(91,156,246,0.3); }
+.lock-ultra { background: rgba(167,139,250,0.15); color: var(--purple); border: 0.5px solid rgba(167,139,250,0.3); }
+.premium-block-body { padding: 16px; position: relative; min-height: 100px; }
+.premium-blur { filter: blur(3px); pointer-events: none; user-select: none; }
+.premium-overlay { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: rgba(14,14,14,0.72); }
+.unlock-btn { padding: 9px 22px; border-radius: var(--r); font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; border: none; transition: all 0.2s; }
+.unlock-pro-btn { background: var(--blue); color: #fff; }
+.unlock-pro-btn:hover { background: #4a8be0; }
+.unlock-ultra-btn { background: var(--purple); color: #fff; }
+.unlock-ultra-btn:hover { background: #9270e8; }
+.unlock-label { font-size: 12px; color: var(--muted); }
+.gap-list { display: flex; flex-direction: column; gap: 8px; }
+.gap-item { display: grid; grid-template-columns: 1fr 110px 110px 32px; gap: 8px; align-items: center; background: rgba(255,255,255,0.03); border: 0.5px solid var(--border); border-radius: var(--r); padding: 10px 12px; }
+.add-gap-btn { width: 100%; padding: 10px; border-radius: var(--r); border: 0.5px dashed var(--border2); background: transparent; color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all 0.15s; }
+.add-gap-btn:hover { background: var(--surface2); color: var(--text); }
+.task-list { display: flex; flex-direction: column; gap: 8px; }
+.task-item { background: rgba(255,255,255,0.03); border: 0.5px solid var(--border); border-radius: var(--r); padding: 12px 14px; display: flex; align-items: center; gap: 10px; }
+.task-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.task-name { flex: 1; font-size: 14px; font-weight: 500; }
+.task-dur { font-size: 12px; color: var(--muted); }
+.remove-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 18px; line-height: 1; padding: 0 2px; transition: color 0.15s; }
+.remove-btn:hover { color: var(--text); }
+.add-task-box { border: 0.5px dashed var(--border2); border-radius: var(--rl); padding: 16px; display: flex; flex-direction: column; gap: 10px; }
+.add-task-row { display: grid; grid-template-columns: 1fr 140px; gap: 10px; }
+.ai-tip-btn { font-size: 12px; color: var(--gold); background: none; border: none; cursor: pointer; text-decoration: underline; text-underline-offset: 2px; font-family: 'DM Sans', sans-serif; text-align: left; padding: 0; }
+.ai-tip-box { background: rgba(212,168,83,0.07); border: 0.5px solid rgba(212,168,83,0.2); border-radius: var(--r); padding: 12px 14px; font-size: 13px; color: var(--muted); line-height: 1.6; display: none; }
+.add-task-commit { background: rgba(255,255,255,0.06); border: 0.5px solid var(--border2); color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 16px; border-radius: var(--r); cursor: pointer; transition: background 0.15s; }
+.add-task-commit:hover { background: rgba(255,255,255,0.1); }
+.nav-row { display: flex; gap: 10px; align-items: center; padding-top: 8px; }
+.back-btn { background: transparent; border: 0.5px solid var(--border2); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 14px; padding: 11px 20px; border-radius: var(--r); cursor: pointer; transition: all 0.15s; }
+.back-btn:hover { color: var(--text); }
+.next-btn { background: var(--gold); color: #0e0e0e; border: none; font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; padding: 11px 28px; border-radius: var(--r); cursor: pointer; transition: all 0.2s; }
+.next-btn:hover { background: var(--gold2); }
+.loading-state { text-align: center; padding: 4rem 1rem; }
+.spinner { width: 32px; height: 32px; border-radius: 50%; border: 2px solid var(--border2); border-top-color: var(--gold); animation: spin 0.7s linear infinite; margin: 0 auto 1rem; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-state p { font-size: 14px; color: var(--muted); }
+.sched-out-hdr { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.sched-out-title { font-family: 'DM Serif Display', serif; font-size: 2rem; letter-spacing: -0.02em; }
+.sched-out-meta { font-size: 13px; color: var(--muted); margin-top: 4px; }
+.restart-btn { background: transparent; border: 0.5px solid var(--border2); color: var(--muted); font-family: 'DM Sans', sans-serif; font-size: 13px; padding: 8px 16px; border-radius: var(--r); cursor: pointer; white-space: nowrap; transition: all 0.15s; }
+.restart-btn:hover { color: var(--text); }
+.sched-card { border: 0.5px solid var(--border); border-radius: var(--rl); overflow: hidden; margin-bottom: 1rem; }
+.sblock { display: flex; align-items: stretch; gap: 14px; padding: 12px 18px; border-bottom: 0.5px solid var(--border); transition: background 0.15s; }
+.sblock:last-child { border-bottom: none; }
+.sblock:hover { background: rgba(255,255,255,0.02); }
+.sblock.gap-t { opacity: 0.4; }
+.stime { font-size: 12px; color: var(--muted); width: 72px; flex-shrink: 0; padding-top: 3px; font-variant-numeric: tabular-nums; }
+.sbar { width: 3px; border-radius: 2px; flex-shrink: 0; }
+.sinfo { flex: 1; }
+.stitle { font-size: 14px; font-weight: 500; }
+.stip { font-size: 12px; color: var(--muted); margin-top: 3px; line-height: 1.5; }
+.upsell-strip { padding: 10px 14px; border-radius: var(--r); font-size: 13px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
+.upsell-pro { background: rgba(91,156,246,0.07); border: 0.5px solid rgba(91,156,246,0.2); color: var(--muted); }
+.upsell-ultra { background: rgba(167,139,250,0.07); border: 0.5px solid rgba(167,139,250,0.2); color: var(--muted); }
+.upsell-link { text-decoration: underline; text-underline-offset: 2px; cursor: pointer; font-weight: 500; }
+.upsell-link-pro { color: var(--blue); }
+.upsell-link-ultra { color: var(--purple); }
+.modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.78); z-index: 500; align-items: center; justify-content: center; padding: 1.5rem; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border: 0.5px solid var(--border2); border-radius: var(--rl); padding: 2rem; max-width: 420px; width: 100%; position: relative; animation: fadein 0.2s ease; }
+.modal-close { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; line-height: 1; }
+.modal-close:hover { color: var(--text); }
+.modal-icon { font-size: 32px; margin-bottom: 1rem; }
+.modal-title { font-family: 'DM Serif Display', serif; font-size: 1.6rem; letter-spacing: -0.02em; margin-bottom: 0.5rem; }
+.modal-desc { font-size: 14px; color: var(--muted); line-height: 1.6; margin-bottom: 1.5rem; }
+.modal-plans { display: flex; flex-direction: column; gap: 10px; }
+.modal-plan-btn { padding: 13px 20px; border-radius: var(--r); font-family: 'DM Sans', sans-serif; font-size: 14px; font-weight: 500; cursor: pointer; border: none; display: flex; align-items: center; justify-content: space-between; transition: all 0.2s; }
+.mp-pro { background: var(--blue); color: #fff; }
+.mp-pro:hover { background: #4a8be0; }
+.mp-ultra { background: var(--purple); color: #fff; }
+.mp-ultra:hover { background: #9270e8; }
+.mp-price { font-size: 12px; opacity: 0.8; }
+footer { padding: 3rem 1.5rem; border-top: 0.5px solid var(--border); text-align: center; }
+.footer-logo { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 0.5rem; }
+.footer-logo span { color: var(--gold); }
+footer p { font-size: 13px; color: var(--muted); }
+@keyframes fadein { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+@media(max-width:600px){ .grid2{grid-template-columns:1fr} .gap-item{grid-template-columns:1fr 90px 90px 32px} .add-task-row{grid-template-columns:1fr} nav{padding:0 1rem} }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="logo" onclick="scrollTo(0,0)">day<span>loom</span></div>
+  <div class="nav-right">
+    <div class="nav-plan-badge badge-free" id="navBadge">Free</div>
+    <button class="nav-upgrade" id="navUpgradeBtn" onclick="openModal('pro')">Upgrade</button>
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-grid"></div>
+  <div class="hero-content">
+    <div class="hero-eyebrow">AI-Powered Scheduling</div>
+    <h1>Your day,<br /><em>perfectly planned</em></h1>
+    <p class="hero-sub">Tell Dayloom your tasks, your free time, and your energy — it builds a full optimized schedule in seconds.</p>
+    <div class="hero-btns">
+      <button class="btn-primary" onclick="document.getElementById('app-section').scrollIntoView({behavior:'smooth'})">Build my schedule →</button>
+      <button class="btn-ghost" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">See pricing</button>
+    </div>
+    <div class="hero-stats">
+      <div class="stat"><div class="stat-num">3</div><div class="stat-label">steps to a full plan</div></div>
+      <div class="stat"><div class="stat-num">AI</div><div class="stat-label">powered insights</div></div>
+      <div class="stat"><div class="stat-num">Pro+Ultra</div><div class="stat-label">premium plans</div></div>
+    </div>
+  </div>
+</section>
+
+<div id="features">
+  <div class="section">
+    <p class="section-label">What you get</p>
+    <h2 class="section-title">Everything you need<br />to own your day</h2>
+    <p class="section-sub">Free gets you started. Pro and Ultra unlock the tools that actually move the needle.</p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="tier-tag tt-free">Free</div>
+        <div class="feature-icon fi-free">⏰</div>
+        <div class="feature-title">AI schedule builder</div>
+        <div class="feature-desc">Set your day, add tasks with tap-or-type chips, block unavailable time — AI builds your full day instantly.</div>
+      </div>
+      <div class="feature-card">
+        <div class="tier-tag tt-free">Free</div>
+        <div class="feature-icon fi-free">🚫</div>
+        <div class="feature-title">Gap blocking</div>
+        <div class="feature-desc">Add school, meetings, or gym time. Gaps are respected and shown clearly — no tasks scheduled over them.</div>
+      </div>
+      <div class="feature-card">
+        <div class="tier-tag tt-free">Free</div>
+        <div class="feature-icon fi-free">🤖</div>
+        <div class="feature-title">AI duration advisor</div>
+        <div class="feature-desc">Not sure how long something takes? Ask AI — it asks follow-up questions and gives you a smart estimate.</div>
+      </div>
+      <div class="feature-card">
+        <div class="tier-tag tt-pro">Pro</div>
+        <div class="feature-icon fi-pro">🧠</div>
+        <div class="feature-title">AI productivity score</div>
+        <div class="feature-desc">Get a letter grade and personalized tip on how well your day is structured — after every schedule build.</div>
+      </div>
+      <div class="feature-card">
+        <div class="tier-tag tt-pro">Pro</div>
+        <div class="feature-icon fi-pro">📊</div>
+        <div class="feature-title">Focus analytics</div>
+        <div class="feature-desc">Visual breakdown of your day — how much time goes to deep work, breaks, gaps, and free time.</div>
+      </div>
+      <div class="feature-card">
+        <div class="tier-tag tt-pro">Pro</div>
+        <div class="feature-icon fi-pro">🔁</div>
+        <div class="feature-title">Recurring templates</div>
+        <div class="feature-desc">Save your schedule as a reusable template. Reload your whole week setup in one tap — no re-entering anything.</div>
+      </div>
+      <div class="feature-card">
+        <div class="tier-tag tt-ultra">Ultra</div>
+        <div class="feature-icon fi-ultra">🌙</div>
+        <div class="feature-title">Wind-down planner</div>
+        <div class="feature-desc">Ultra auto-schedules an evening routine — reading, stretching, screen-free time — based on your end time.</div>
+      </div>
+      <div class="feature-card">
+        <div class="tier-tag tt-ultra">Ultra</div>
+        <div class="feature-icon fi-ultra">🎯</div>
+        <div class="feature-title">Weekly goal setting</div>
+        <div class="feature-desc">Set 3 weekly goals and Dayloom weaves tasks toward them into every schedule you build automatically.</div>
+      </div>
+      <div class="feature-card">
+        <div class="tier-tag tt-ultra">Ultra</div>
+        <div class="feature-icon fi-ultra">⚡</div>
+        <div class="feature-title">Instant reschedule</div>
+        <div class="feature-desc">Running behind? Hit "Reschedule from now" and Ultra rebuilds the rest of your day on the fly in seconds.</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<section id="pricing">
+  <div class="pricing-inner">
+    <div class="pricing-header">
+      <p class="section-label" style="text-align:center">Pricing</p>
+      <h2 class="section-title" style="text-align:center">Simple, honest pricing</h2>
+      <p class="section-sub" style="margin:0 auto;text-align:center">Start free. Upgrade when you're ready for the good stuff.</p>
+    </div>
+    <div class="pricing-grid">
+      <div class="plan-card" id="planCardFree">
+        <div class="plan-name">Free</div>
+        <div class="plan-price">$0 <span>/ month</span></div>
+        <div class="plan-desc">Everything you need to try Dayloom and build your first schedule.</div>
+        <ul class="plan-features">
+          <li>AI schedule builder</li>
+          <li>Up to 5 tasks per schedule</li>
+          <li>Gap blocking</li>
+          <li>Break style selector</li>
+          <li>AI duration advisor</li>
+          <li class="locked">Productivity score</li>
+          <li class="locked">Focus analytics</li>
+          <li class="locked">Recurring templates</li>
+          <li class="locked">Wind-down planner</li>
+          <li class="locked">Weekly goals & reschedule</li>
+        </ul>
+        <button class="plan-btn plan-btn-free" onclick="selectPlan('free')">Get started free</button>
+      </div>
+      <div class="plan-card featured" id="planCardPro">
+        <div class="popular-badge">Most popular</div>
+        <div class="plan-name">Pro</div>
+        <div class="plan-price">$9.99 <span>/ month</span></div>
+        <div class="plan-desc">For students and daily planners who want smarter, more powerful schedules.</div>
+        <ul class="plan-features">
+          <li>Everything in Free</li>
+          <li>Unlimited tasks</li>
+          <li>AI productivity score</li>
+          <li>Focus analytics chart</li>
+          <li>Recurring schedule templates</li>
+          <li>Priority support</li>
+          <li class="locked">Wind-down planner</li>
+          <li class="locked">Weekly goal setting</li>
+          <li class="locked">Instant reschedule</li>
+        </ul>
+        <button class="plan-btn plan-btn-pro" onclick="selectPlan('pro')">Get Pro — $9.99/mo</button>
+      </div>
+      <div class="plan-card ultra-card" id="planCardUltra">
+        <div class="ultra-badge">Everything unlocked</div>
+        <div class="plan-name">Ultra</div>
+        <div class="plan-price">$17.99 <span>/ month</span></div>
+        <div class="plan-desc">The full Dayloom experience. Every feature, no limits, no compromises.</div>
+        <ul class="plan-features">
+          <li>Everything in Pro</li>
+          <li>Wind-down planner</li>
+          <li>Weekly goal setting</li>
+          <li>Instant reschedule</li>
+          <li>Early access to new features</li>
+          <li>Priority support</li>
+        </ul>
+        <button class="plan-btn plan-btn-ultra" onclick="selectPlan('ultra')">Get Ultra — $17.99/mo</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="app-section">
+  <div class="app-inner">
+    <div class="app-header">
+      <h2>Build your schedule</h2>
+      <p>3 quick steps — tap or type, your choice.</p>
+      <div class="plan-indicator">
+        Plan: <span id="planLabel" style="color:var(--text);font-weight:500;">Free</span>
+        &nbsp;·&nbsp;
+        <span style="color:var(--gold);cursor:pointer;text-decoration:underline;text-underline-offset:2px;" onclick="document.getElementById('pricing').scrollIntoView({behavior:'smooth'})">upgrade</span>
+      </div>
+    </div>
+    <div class="progress-bar" id="progressBar"></div>
+
+    <!-- STEP 1 -->
+    <div class="step" id="step-basics">
+      <div>
+        <div class="step-tag">Step 1 of 3</div>
+        <div class="step-heading">When's your day?</div>
+      </div>
+      <div class="grid2">
+        <div class="field-group">
+          <div class="field-label">Day starts</div>
+          <div class="chip-row" id="startChips">
+            <div class="chip" data-v="6:00 AM" onclick="pickTime('start','6:00 AM')">6 AM</div>
+            <div class="chip" data-v="7:00 AM" onclick="pickTime('start','7:00 AM')">7 AM</div>
+            <div class="chip" data-v="8:00 AM" onclick="pickTime('start','8:00 AM')">8 AM</div>
+            <div class="chip" data-v="9:00 AM" onclick="pickTime('start','9:00 AM')">9 AM</div>
+            <div class="chip" data-v="10:00 AM" onclick="pickTime('start','10:00 AM')">10 AM</div>
+          </div>
+          <div class="or-line">or type</div>
+          <input type="text" id="startInput" placeholder="e.g. 7:30 AM" oninput="S.start=this.value;clearGroup('startChips')" />
+        </div>
+        <div class="field-group">
+          <div class="field-label">Day ends</div>
+          <div class="chip-row" id="endChips">
+            <div class="chip" data-v="4:00 PM" onclick="pickTime('end','4:00 PM')">4 PM</div>
+            <div class="chip" data-v="5:00 PM" onclick="pickTime('end','5:00 PM')">5 PM</div>
+            <div class="chip" data-v="6:00 PM" onclick="pickTime('end','6:00 PM')">6 PM</div>
+            <div class="chip" data-v="7:00 PM" onclick="pickTime('end','7:00 PM')">7 PM</div>
+            <div class="chip" data-v="9:00 PM" onclick="pickTime('end','9:00 PM')">9 PM</div>
+          </div>
+          <div class="or-line">or type</div>
+          <input type="text" id="endInput" placeholder="e.g. 8:00 PM" oninput="S.end=this.value;clearGroup('endChips')" />
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Peak energy time</div>
+        <div class="chip-row" id="energyChips">
+          <div class="chip" data-v="morning" onclick="pickSingle('energyChips','morning','energy')">🌅 Morning</div>
+          <div class="chip" data-v="afternoon" onclick="pickSingle('energyChips','afternoon','energy')">☀️ Afternoon</div>
+          <div class="chip" data-v="evening" onclick="pickSingle('energyChips','evening','energy')">🌙 Evening</div>
+          <div class="chip" data-v="no preference" onclick="pickSingle('energyChips','no preference','energy')">No preference</div>
+        </div>
+      </div>
+      <div class="field-group">
+        <div class="field-label">Break style</div>
+        <div class="chip-row" id="breakChips">
+          <div class="chip" data-v="minimal" onclick="pickSingle('breakChips','minimal','breaks')">Minimal — power through</div>
+          <div class="chip" data-v="regular" onclick="pickSingle('breakChips','regular','breaks')">Regular — 10–15 min</div>
+          <div class="chip" data-v="frequent" onclick="pickSingle('breakChips','frequent','breaks')">Frequent — lots of rest</div>
+        </div>
+      </div>
+      <!-- ULTRA: Wind-down -->
+      <div class="premium-block">
+        <div class="premium-block-header">
+          <div class="premium-block-title">🌙 Wind-down planner <span class="lock-badge lock-ultra">Ultra</span></div>
+        </div>
+        <div class="premium-block-body">
+          <div class="premium-blur" style="display:flex;flex-direction:column;gap:10px;">
+            <div class="field-label">Evening routine length</div>
+            <div class="chip-row"><div class="chip">30 min</div><div class="chip sel">45 min</div><div class="chip">1 hour</div></div>
+            <div class="field-label">Include in routine</div>
+            <div class="chip-row"><div class="chip sel">📖 Reading</div><div class="chip sel">🧘 Stretch</div><div class="chip">🚿 Shower</div><div class="chip">📵 Screen-free</div></div>
+          </div>
+          <div class="premium-overlay" id="windownOverlay">
+            <div class="unlock-label">Unlock with Ultra</div>
+            <button class="unlock-btn unlock-ultra-btn" onclick="openModal('ultra')">Upgrade to Ultra →</button>
+          </div>
+        </div>
+      </div>
+      <div class="nav-row"><button class="next-btn" onclick="goTo(1)">Next →</button></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="step" id="step-gaps">
+      <div>
+        <div class="step-tag">Step 2 of 3</div>
+        <div class="step-heading">Any times you're not free?</div>
+        <div class="step-sub-text">School, lunch, gym — these appear as gaps in your schedule.</div>
+      </div>
+      <div class="gap-list" id="gapList"></div>
+      <button class="add-gap-btn" onclick="addGap()">+ Add a busy block</button>
+      <!-- ULTRA: Weekly goals -->
+      <div class="premium-block">
+        <div class="premium-block-header">
+          <div class="premium-block-title">🎯 Weekly goals <span class="lock-badge lock-ultra">Ultra</span></div>
+        </div>
+        <div class="premium-block-body">
+          <div class="premium-blur" style="display:flex;flex-direction:column;gap:8px;">
+            <div class="field-label">This week I want to…</div>
+            <input type="text" placeholder="e.g. Finish the history essay" style="pointer-events:none;" />
+            <input type="text" placeholder="e.g. Study for math test" style="pointer-events:none;" />
+            <input type="text" placeholder="e.g. Go to the gym 3 times" style="pointer-events:none;" />
+          </div>
+          <div class="premium-overlay">
+            <div class="unlock-label">Unlock with Ultra</div>
+            <button class="unlock-btn unlock-ultra-btn" onclick="openModal('ultra')">Upgrade to Ultra →</button>
+          </div>
+        </div>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" onclick="goTo(0)">Back</button>
+        <button class="next-btn" onclick="goTo(2)">Next →</button>
+      </div>
+    </div>
+
+    <!-- STEP 3 -->
+    <div class="step" id="step-tasks">
+      <div>
+        <div class="step-tag">Step 3 of 3</div>
+        <div class="step-heading">What do you need to do?</div>
+        <div class="step-sub-text">Tap a duration or type it. Not sure how long? Ask AI.</div>
+      </div>
+      <div class="task-list" id="taskList"></div>
+      <div class="add-task-box" id="addTaskBox">
+        <div class="add-task-row">
+          <input type="text" id="tName" placeholder="Task name (e.g. Math homework)" onkeydown="if(event.key==='Enter')commitTask()" />
+          <select id="tPriority">
+            <option value="high">🔴 High</option>
+            <option value="medium" selected>🟡 Medium</option>
+            <option value="low">🟢 Low</option>
+          </select>
+        </div>
+        <div class="field-label">Duration</div>
+        <div class="chip-row" id="durChips">
+          <div class="chip" data-v="15 min" onclick="pickSingle('durChips','15 min','dur')">15 min</div>
+          <div class="chip" data-v="30 min" onclick="pickSingle('durChips','30 min','dur')">30 min</div>
+          <div class="chip" data-v="45 min" onclick="pickSingle('durChips','45 min','dur')">45 min</div>
+          <div class="chip" data-v="1 hr" onclick="pickSingle('durChips','1 hr','dur')">1 hr</div>
+          <div class="chip" data-v="1.5 hr" onclick="pickSingle('durChips','1.5 hr','dur')">1.5 hr</div>
+          <div class="chip" data-v="2 hr" onclick="pickSingle('durChips','2 hr','dur')">2 hr</div>
+          <div class="chip" data-v="3 hr" onclick="pickSingle('durChips','3 hr','dur')">3 hr</div>
+        </div>
+        <div class="or-line">or type</div>
+        <input type="text" id="tDur" placeholder="e.g. 90 min" oninput="clearGroup('durChips')" />
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;">
+          <button class="add-task-commit" onclick="commitTask()">+ Add task</button>
+          <button class="ai-tip-btn" onclick="askAI()">Not sure how long? Ask AI →</button>
+        </div>
+        <div class="ai-tip-box" id="aiBox"></div>
+      </div>
+      <div id="taskLimitMsg" style="display:none;font-size:13px;color:var(--gold);padding:10px 14px;background:rgba(212,168,83,0.07);border:0.5px solid rgba(212,168,83,0.2);border-radius:var(--r);">
+        Free plan is limited to 5 tasks. <span style="text-decoration:underline;cursor:pointer;" onclick="openModal('pro')">Upgrade to Pro for unlimited →</span>
+      </div>
+      <!-- PRO: Recurring templates teaser -->
+      <div class="premium-block">
+        <div class="premium-block-header">
+          <div class="premium-block-title">🔁 Recurring templates <span class="lock-badge lock-pro">Pro</span></div>
+        </div>
+        <div class="premium-block-body">
+          <div class="premium-blur" style="display:flex;flex-direction:column;gap:8px;">
+            <div class="field-label">Load a saved template</div>
+            <div class="chip-row">
+              <div class="chip sel">📚 School day</div>
+              <div class="chip">💪 Workout day</div>
+              <div class="chip">🏠 Work from home</div>
+            </div>
+            <div style="font-size:12px;color:var(--muted);margin-top:4px;">Or save today's schedule as a new template</div>
+          </div>
+          <div class="premium-overlay" id="recurringOverlay">
+            <div class="unlock-label">Unlock with Pro</div>
+            <button class="unlock-btn unlock-pro-btn" onclick="openModal('pro')">Upgrade to Pro →</button>
+          </div>
+        </div>
+      </div>
+      <div class="nav-row">
+        <button class="back-btn" onclick="goTo(1)">Back</button>
+        <button class="next-btn" onclick="buildSchedule()">Build my schedule ✦</button>
+      </div>
+    </div>
+
+    <!-- STEP 4 -->
+    <div class="step" id="step-result">
+      <div id="resultContent">
+        <div class="loading-state"><div class="spinner"></div><p>Building your perfect day…</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="footer-logo">day<span>loom</span></div>
+  <p>AI-powered scheduling for your best day yet.</p>
+</footer>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="upgradeModal" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <div class="modal-icon" id="modalIcon">🔒</div>
+    <div class="modal-title" id="modalTitle">Unlock this feature</div>
+    <div class="modal-desc" id="modalDesc">This feature is available on paid plans.</div>
+    <div class="modal-plans" id="modalPlans"></div>
+  </div>
+</div>
+
+<script>
+const PLANS = {free:0,pro:1,ultra:2};
+let currentPlan = 'free';
+
+function canAccess(p){ return PLANS[currentPlan] >= PLANS[p]; }
+
+function selectPlan(plan){
+  currentPlan = plan;
+  updatePlanUI();
+  closeModal();
+  document.getElementById('app-section').scrollIntoView({behavior:'smooth'});
+}
+
+function updatePlanUI(){
+  const badge = document.getElementById('navBadge');
+  const label = document.getElementById('planLabel');
+  const upgradeBtn = document.getElementById('navUpgradeBtn');
+  const cfgs = {
+    free:  {text:'Free',  cls:'badge-free',  label:'Free',  showUp:true,  upTarget:'pro'},
+    pro:   {text:'Pro',   cls:'badge-pro',   label:'Pro',   showUp:true,  upTarget:'ultra'},
+    ultra: {text:'Ultra', cls:'badge-ultra', label:'Ultra', showUp:false, upTarget:'ultra'}
+  };
+  const c = cfgs[currentPlan];
+  badge.textContent=c.text; badge.className='nav-plan-badge '+c.cls;
+  label.textContent=c.label;
+  upgradeBtn.style.display = c.showUp?'block':'none';
+  upgradeBtn.textContent = currentPlan==='pro'?'Upgrade to Ultra':'Upgrade';
+  upgradeBtn.onclick = ()=>openModal(c.upTarget);
+  ['free','pro','ultra'].forEach(p=>{
+    const card=document.getElementById('planCard'+p[0].toUpperCase()+p.slice(1));
+    if(card) card.classList.toggle('active-plan', p===currentPlan);
+  });
+  const wo=document.getElementById('windownOverlay');
+  if(wo) wo.style.display=canAccess('ultra')?'none':'flex';
+  const ro=document.getElementById('recurringOverlay');
+  if(ro) ro.style.display=canAccess('pro')?'none':'flex';
+  updateTaskLimitMsg();
+}
+
+function openModal(target){
+  const icon=document.getElementById('modalIcon');
+  const title=document.getElementById('modalTitle');
+  const desc=document.getElementById('modalDesc');
+  const plans=document.getElementById('modalPlans');
+  if(target==='ultra'){
+    icon.textContent='⚡'; title.textContent='Unlock Ultra features';
+    desc.textContent='Wind-down planner, weekly goals, instant reschedule, and everything in Pro — all unlocked.';
+    plans.innerHTML=`<button class="modal-plan-btn mp-ultra" onclick="selectPlan('ultra')"><span>Get Ultra</span><span class="mp-price">$17.99 / month</span></button>`;
+  } else {
+    icon.textContent='🔓'; title.textContent='Unlock Pro features';
+    desc.textContent='Unlimited tasks, AI productivity score, focus analytics, and recurring schedule templates.';
+    plans.innerHTML=`
+      <button class="modal-plan-btn mp-pro" onclick="selectPlan('pro')"><span>Get Pro</span><span class="mp-price">$9.99 / month</span></button>
+      <button class="modal-plan-btn mp-ultra" onclick="selectPlan('ultra')"><span>Get Ultra — everything</span><span class="mp-price">$17.99 / month</span></button>`;
+  }
+  document.getElementById('upgradeModal').classList.add('open');
+}
+function closeModal(){ document.getElementById('upgradeModal').classList.remove('open'); }
+
+const S={start:'8:00 AM',end:'6:00 PM',energy:'morning',breaks:'regular',gaps:[],tasks:[]};
+const STEPS=['basics','gaps','tasks','result'];
+let cur=0,gid=0,tid=0;
+
+function renderProgress(){ document.getElementById('progressBar').innerHTML=STEPS.map((_,i)=>`<div class="prog-seg ${i<=cur?'active':''}"></div>`).join(''); }
+function goTo(i){ cur=i; renderProgress(); STEPS.forEach(s=>{const el=document.getElementById('step-'+s);if(el)el.classList.toggle('active',STEPS[i]===s);}); document.getElementById('app-section').scrollIntoView({behavior:'smooth',block:'start'}); }
+function pickTime(which,val){ if(which==='start'){S.start=val;document.getElementById('startInput').value='';setChip('startChips',val);}else{S.end=val;document.getElementById('endInput').value='';setChip('endChips',val);} }
+function setChip(g,val){ clearGroup(g); const c=document.querySelector(`#${g} [data-v="${val}"]`); if(c)c.classList.add('sel'); }
+function clearGroup(g){ document.querySelectorAll(`#${g} .chip`).forEach(c=>c.classList.remove('sel')); }
+function pickSingle(g,val,field){ clearGroup(g); setChip(g,val); S[field]=val; }
+
+function addGap(){ const id=gid++; S.gaps.push({id,label:'',from:'',to:''}); renderGaps(); }
+function removeGap(id){ S.gaps=S.gaps.filter(g=>g.id!==id); renderGaps(); }
+function updateGap(id,f,v){ const g=S.gaps.find(x=>x.id===id); if(g)g[f]=v; }
+function renderGaps(){ const el=document.getElementById('gapList'); if(!el)return; el.innerHTML=S.gaps.map(g=>`<div class="gap-item"><input type="text" placeholder="e.g. School" value="${g.label}" oninput="updateGap(${g.id},'label',this.value)" /><input type="text" placeholder="9:00 AM" value="${g.from}" oninput="updateGap(${g.id},'from',this.value)" /><input type="text" placeholder="3:00 PM" value="${g.to}" oninput="updateGap(${g.id},'to',this.value)" /><button class="remove-btn" onclick="removeGap(${g.id})">×</button></div>`).join(''); }
+
+const FREE_LIMIT=5;
+function updateTaskLimitMsg(){ const msg=document.getElementById('taskLimitMsg'); const box=document.getElementById('addTaskBox'); if(!msg)return; const at=!canAccess('pro')&&S.tasks.length>=FREE_LIMIT; msg.style.display=at?'block':'none'; if(box)box.style.display=at?'none':'flex'; }
+function commitTask(){ if(!canAccess('pro')&&S.tasks.length>=FREE_LIMIT){openModal('pro');return;} const name=document.getElementById('tName').value.trim(); if(!name)return; const selC=document.querySelector('#durChips .sel'); const dur=selC?selC.dataset.v:(document.getElementById('tDur').value.trim()||'1 hr'); const pri=document.getElementById('tPriority').value; S.tasks.push({id:tid++,name,dur,pri}); document.getElementById('tName').value=''; document.getElementById('tDur').value=''; clearGroup('durChips'); document.getElementById('aiBox').style.display='none'; renderTasks(); updateTaskLimitMsg(); }
+function removeTask(id){ S.tasks=S.tasks.filter(t=>t.id!==id); renderTasks(); updateTaskLimitMsg(); }
+function renderTasks(){ const el=document.getElementById('taskList'); if(!el)return; const colors={high:'#e05c5c',medium:'#d4a853',low:'#4caf85'}; el.innerHTML=S.tasks.map(t=>`<div class="task-item"><div class="task-dot" style="background:${colors[t.pri]}"></div><div class="task-name">${t.name}</div><div class="task-dur">${t.dur}</div><button class="remove-btn" onclick="removeTask(${t.id})">×</button></div>`).join(''); }
+
+async function askAI(){ const name=document.getElementById('tName').value.trim(); const box=document.getElementById('aiBox'); box.style.display='block'; box.textContent='Thinking…'; const prompt=name?`A student wants to schedule "${name}". In 2 sentences: ask 1 smart follow-up question, then give a time recommendation.`:'Ask in 1 friendly sentence what task they want a time estimate for.'; try{ const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':'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','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:150,messages:[{role:'user',content:prompt}]})}); const d=await r.json(); box.textContent=d.content[0].text; }catch(e){ box.textContent='Could not reach AI. Try again.'; } }
+
+async function buildSchedule(){
+  goTo(3);
+  const breakDesc={minimal:'5-min breaks only',regular:'10–15 min breaks between tasks',frequent:'15–20 min breaks and a longer lunch'}[S.breaks];
+  const prompt=`Build an optimized daily schedule.\nDay: ${S.start} to ${S.end}\nEnergy peak: ${S.energy}\nBreaks: ${breakDesc}\nUnavailable blocks:\n${S.gaps.length?S.gaps.map(g=>`- ${g.label||'Busy'}: ${g.from} to ${g.to}`).join('\n'):'- None'}\nTasks:\n${S.tasks.length?S.tasks.map(t=>`- ${t.name} | ${t.dur} | ${t.pri} priority`).join('\n'):'- Just breaks and free time'}\n\nRules:\n- High priority tasks during peak energy hours\n- Gaps appear exactly as given, type "gap"\n- Never schedule over gaps\n- Fill whole day start to end\n- Short 1-sentence tip per block\n\nOutput ONLY valid JSON no markdown:\n{"blocks":[{"time":"8:00 AM","end":"9:30 AM","title":"Deep work: Essay","type":"task","tip":"Your energy is freshest now"}]}`;
+  try{
+    const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':'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','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:1500,messages:[{role:'user',content:prompt}]})});
+    const d=await r.json();
+    const raw=d.content.map(b=>b.text||'').join('').replace(/```json|```/g,'').trim();
+    const parsed=JSON.parse(raw);
+    await renderResult(parsed.blocks||[]);
+  }catch(e){ document.getElementById('resultContent').innerHTML=`<p style="color:var(--muted);font-size:14px;padding:1rem 0;">Something went wrong. <button class="back-btn" onclick="goTo(2)" style="margin-left:8px;">Go back</button></p>`; }
+}
+
+function td(a,b){ const p=s=>{const m=(s||'').match(/(\d+):(\d+)\s*(AM|PM)/i);if(!m)return 0;let h=+m[1],mn=+m[2];if(m[3].toUpperCase()==='PM'&&h!==12)h+=12;if(m[3].toUpperCase()==='AM'&&h===12)h=0;return h*60+mn;}; return Math.max(0,p(b)-p(a)); }
+
+async function renderResult(blocks){
+  const colors={task:'#5b9cf6',break:'#4caf85',gap:'#3a3a3a'};
+  const focusMins=blocks.filter(b=>b.type==='task').reduce((s,b)=>s+td(b.time,b.end),0);
+  const breakMins=blocks.filter(b=>b.type==='break').reduce((s,b)=>s+td(b.time,b.end),0);
+  const gapMins=blocks.filter(b=>b.type==='gap').reduce((s,b)=>s+td(b.time,b.end),0);
+  const totalMins=td(S.start,S.end);
+
+  // PRO: Productivity score
+  let scoreHtml='';
+  if(canAccess('pro')){
+    let score={grade:'B+',tip:'Good balance of tasks and breaks.'};
+    try{
+      const r=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','x-api-key':'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','anthropic-version':'2023-06-01'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:80,messages:[{role:'user',content:`Rate this schedule as a productivity expert. Tasks: ${blocks.filter(b=>b.type==='task').length}, Breaks: ${blocks.filter(b=>b.type==='break').length}, Focus mins: ${focusMins}. Reply ONLY with JSON: {"grade":"A","tip":"one short sentence"}`}]})});
+      const d=await r.json(); score=JSON.parse(d.content[0].text.replace(/```json|```/g,'').trim());
+    }catch(e){}
+    const sc=score.grade.startsWith('A')?'color:var(--green)':'color:var(--gold)';
+    scoreHtml=`<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(76,175,133,0.07);border:0.5px solid rgba(76,175,133,0.2);border-radius:var(--r);margin-bottom:10px;font-size:13px;">🧠 Productivity score: <strong style="${sc}">${score.grade}</strong> <span style="color:var(--muted)">— ${score.tip}</span></div>`;
+  } else {
+    scoreHtml=`<div class="upsell-strip upsell-pro">🧠 <strong style="color:var(--blue)">Productivity score</strong> unlocks on Pro — see how well your day is structured. <span class="upsell-link upsell-link-pro" onclick="openModal('pro')">Upgrade →</span></div>`;
+  }
+
+  // PRO: Analytics
+  let analyticsHtml='';
+  if(canAccess('pro')){
+    const pct=v=>totalMins>0?Math.round(v/totalMins*100):0;
+    const freeMins=Math.max(0,totalMins-focusMins-breakMins-gapMins);
+    const bars=[{l:'Focus',m:focusMins,c:'var(--blue)'},{l:'Breaks',m:breakMins,c:'var(--green)'},{l:'Gaps',m:gapMins,c:'#3a3a3a'},{l:'Free',m:freeMins,c:'rgba(255,255,255,0.08)'}].filter(b=>b.m>0);
+    analyticsHtml=`<div style="margin-top:10px;background:var(--surface2);border:0.5px solid var(--border);border-radius:var(--rl);padding:16px;"><div style="font-size:13px;font-weight:500;margin-bottom:12px;color:var(--text);">📊 Focus analytics</div><div style="display:flex;height:10px;border-radius:6px;overflow:hidden;gap:2px;margin-bottom:12px;">${bars.map(b=>`<div style="flex:${pct(b.m)};background:${b.c};border-radius:4px;min-width:4px;"></div>`).join('')}</div><div style="display:flex;flex-wrap:wrap;gap:12px;">${bars.map(b=>`<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);"><div style="width:8px;height:8px;border-radius:50%;background:${b.c};flex-shrink:0;"></div>${b.l} <span style="color:var(--text);font-weight:500;">${b.m}m</span></div>`).join('')}</div></div>`;
+  } else {
+    analyticsHtml=`<div class="upsell-strip upsell-pro" style="margin-top:10px;">📊 <strong style="color:var(--blue)">Focus analytics</strong> — visual breakdown of your day unlocks on Pro. <span class="upsell-link upsell-link-pro" onclick="openModal('pro')">Upgrade →</span></div>`;
+  }
+
+  // ULTRA: Instant reschedule
+  let rescheduleHtml='';
+  if(canAccess('ultra')){
+    rescheduleHtml=`<button onclick="alert('⚡ Rebuilding your day from now…')" style="margin-top:8px;width:100%;padding:11px;background:rgba(167,139,250,0.1);border:0.5px solid rgba(167,139,250,0.3);color:var(--purple);border-radius:var(--r);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:500;cursor:pointer;transition:background 0.15s;">⚡ Reschedule from now</button>`;
+  } else {
+    rescheduleHtml=`<div class="upsell-strip upsell-ultra" style="margin-top:8px;">⚡ <strong style="color:var(--purple)">Instant reschedule</strong> — running behind? Ultra rebuilds your day on the fly. <span class="upsell-link upsell-link-ultra" onclick="openModal('ultra')">Upgrade →</span></div>`;
+  }
+
+  document.getElementById('resultContent').innerHTML=`
+    <div class="sched-out-hdr">
+      <div><div class="sched-out-title">Your schedule ✦</div><div class="sched-out-meta">${S.start} – ${S.end} · ${focusMins} min of focused work</div></div>
+      <button class="restart-btn" onclick="location.reload()">Start over</button>
+    </div>
+    ${scoreHtml}
+    <div class="sched-card">${blocks.map(b=>`<div class="sblock ${b.type==='gap'?'gap-t':''}"><div class="stime">${b.time}</div><div class="sbar" style="background:${colors[b.type]||'#3a3a3a'}"></div><div class="sinfo"><div class="stitle">${b.title}</div>${b.tip?`<div class="stip">${b.tip}</div>`:''}</div></div>`).join('')}</div>
+    ${analyticsHtml}
+    ${rescheduleHtml}`;
+}
+
+(function init(){
+  renderProgress();
+  document.getElementById('step-basics').classList.add('active');
+  setChip('startChips','8:00 AM'); S.start='8:00 AM';
+  setChip('endChips','6:00 PM'); S.end='6:00 PM';
+  setChip('energyChips','morning'); S.energy='morning';
+  setChip('breakChips','regular'); S.breaks='regular';
+  updatePlanUI();
+})();
+</script>
+<script>
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js');
+  });
+}
+</script>
+</body>
+</html>
