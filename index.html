@@ -329,7 +329,7 @@ footer p { font-size: 13px; color: var(--muted); }
       <div class="plan-card featured" id="planCardPro">
         <div class="popular-badge">Most popular</div>
         <div class="plan-name">Pro</div>
-        <div class="plan-price">$9.99 <span>/ month</span></div>
+        <div class="plan-price">$4.99 <span>/ month</span></div>
         <div class="plan-desc">For students and daily planners who want smarter, more powerful schedules.</div>
         <ul class="plan-features">
           <li>Everything in Free</li>
@@ -342,12 +342,12 @@ footer p { font-size: 13px; color: var(--muted); }
           <li class="locked">Weekly goal setting</li>
           <li class="locked">Instant reschedule</li>
         </ul>
-        <button class="plan-btn plan-btn-pro" onclick="selectPlan('pro')">Get Pro — $9.99/mo</button>
+        <button class="plan-btn plan-btn-pro" onclick="selectPlan('pro')">Get Pro — $4.99/mo</button>
       </div>
       <div class="plan-card ultra-card" id="planCardUltra">
         <div class="ultra-badge">Everything unlocked</div>
         <div class="plan-name">Ultra</div>
-        <div class="plan-price">$17.99 <span>/ month</span></div>
+        <div class="plan-price">$7.99 <span>/ month</span></div>
         <div class="plan-desc">The full Dayloom experience. Every feature, no limits, no compromises.</div>
         <ul class="plan-features">
           <li>Everything in Pro</li>
@@ -357,7 +357,7 @@ footer p { font-size: 13px; color: var(--muted); }
           <li>Early access to new features</li>
           <li>Priority support</li>
         </ul>
-        <button class="plan-btn plan-btn-ultra" onclick="selectPlan('ultra')">Get Ultra — $17.99/mo</button>
+        <button class="plan-btn plan-btn-ultra" onclick="selectPlan('ultra')">Get Ultra — $7.99/mo</button>
       </div>
     </div>
   </div>
@@ -616,13 +616,13 @@ function openModal(target){
   if(target==='ultra'){
     icon.textContent='⚡'; title.textContent='Unlock Ultra features';
     desc.textContent='Wind-down planner, weekly goals, instant reschedule, and everything in Pro — all unlocked.';
-    plans.innerHTML=`<button class="modal-plan-btn mp-ultra" onclick="selectPlan('ultra')"><span>Get Ultra</span><span class="mp-price">$17.99 / month</span></button>`;
+    plans.innerHTML=`<button class="modal-plan-btn mp-ultra" onclick="selectPlan('ultra')"><span>Get Ultra</span><span class="mp-price">$7.99 / month</span></button>`;
   } else {
     icon.textContent='🔓'; title.textContent='Unlock Pro features';
     desc.textContent='Unlimited tasks, AI productivity score, focus analytics, and recurring schedule templates.';
     plans.innerHTML=`
-      <button class="modal-plan-btn mp-pro" onclick="selectPlan('pro')"><span>Get Pro</span><span class="mp-price">$9.99 / month</span></button>
-      <button class="modal-plan-btn mp-ultra" onclick="selectPlan('ultra')"><span>Get Ultra — everything</span><span class="mp-price">$17.99 / month</span></button>`;
+      <button class="modal-plan-btn mp-pro" onclick="selectPlan('pro')"><span>Get Pro</span><span class="mp-price">$4.99 / month</span></button>
+      <button class="modal-plan-btn mp-ultra" onclick="selectPlan('ultra')"><span>Get Ultra — everything</span><span class="mp-price">$7.99 / month</span></button>`;
   }
   document.getElementById('upgradeModal').classList.add('open');
 }
@@ -729,7 +729,11 @@ async function renderResult(blocks){
 })();
 </script>
 <script>
-
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js');
+  });
+}
 </script>
 </body>
 </html>
